@@ -1,0 +1,16 @@
+[package]
+name          = "partitioned"
+version       = "0.1.0"
+edition       = "2021"
+description   = "Local partitioning for iterators and streams (async iterators)"
+authors       = [ "Heiko Seeberger <git@heikoseeberger.de>" ]
+license-file  = "LICENSE"
+readme        = "README.md"
+homepage      = "https://github.com/hseeberger/partitioned"
+repository    = "https://github.com/hseeberger/partitioned"
+documentation = "https://github.com/hseeberger/partitioned"
+
+[dependencies]
+
+[dev-dependencies]
+anyhow = { version = "1.0" }

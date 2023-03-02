@@ -4,12 +4,16 @@ pub trait IteratorExt: Iterator
 where
     Self: Sized,
 {
-    fn partitioned<F, K>(self, make_key: F) -> Partitioned<Self, F>
+    fn partitioned<F, K>(self, make_key: F) -> Partitioned<Self, F, K>
     where
         F: Fn(&Self::Item) -> K,
     {
         let upstream = Rc::new(RefCell::new(self.zip_with_next()));
-        Partitioned { upstream, make_key }
+        Partitioned {
+            upstream,
+            make_key,
+            key: None,
+        }
     }
 
     fn zip_with_next(self) -> ZipWithNext<Self> {
@@ -60,15 +64,16 @@ where
     }
 }
 
-pub struct Partitioned<I, F>
+pub struct Partitioned<I, F, K>
 where
     I: Iterator,
 {
     upstream: Rc<RefCell<ZipWithNext<I>>>,
     make_key: F,
+    key: Option<K>,
 }
 
-impl<I, F, K> Iterator for Partitioned<I, F>
+impl<I, F, K> Iterator for Partitioned<I, F, K>
 where
     I: Iterator,
     I::Item: Clone,
@@ -79,13 +84,22 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.upstream.borrow_mut().next() {
-            Some((current, next)) => Some(Partition {
-                upstream: self.upstream.clone(),
-                make_key: self.make_key,
-                current,
-                next,
-                terminated: false,
-            }),
+            Some((current, next)) => {
+                let key = Some((self.make_key)(&current));
+                if key == self.key {
+                    panic!("Partition not consumed")
+                } else {
+                    self.key = key
+                };
+
+                Some(Partition {
+                    upstream: self.upstream.clone(),
+                    make_key: self.make_key,
+                    current,
+                    next,
+                    terminated: false,
+                })
+            }
 
             None => None,
         }
@@ -141,6 +155,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::panic::{catch_unwind, AssertUnwindSafe};
 
     #[test]
     fn test_zip_with_next() {
@@ -175,5 +190,17 @@ mod tests {
             result,
             vec![vec![1], vec![2, 2], vec![3, 3, 3], vec![4], vec![5, 5]]
         );
+    }
+
+    #[test]
+    #[should_panic = "Partition not consumed"]
+    fn test_partitioned_not_consumed() {
+        let numbers: Vec<i32> = vec![1, 1, 2];
+        let mut partitioned = numbers.into_iter().partitioned(|n| *n);
+
+        let ones = partitioned.next();
+        assert!(ones.is_some());
+
+        partitioned.next();
     }
 }

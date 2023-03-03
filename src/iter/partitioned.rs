@@ -1,4 +1,4 @@
-use crate::ZipWithNext;
+use super::ZipWithNext;
 use std::{cell::RefCell, mem::swap, rc::Rc};
 
 pub struct Partitioned<I, F, K>
@@ -14,8 +14,7 @@ impl<I, F, K> Partitioned<I, F, K>
 where
     I: Iterator,
 {
-    #[allow(missing_docs)]
-    pub fn new(upstream: Rc<RefCell<ZipWithNext<I>>>, make_key: F) -> Self {
+    pub(crate) fn new(upstream: Rc<RefCell<ZipWithNext<I>>>, make_key: F) -> Self {
         Partitioned {
             upstream,
             make_key,
@@ -105,7 +104,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::IteratorExt;
+    use crate::iter::IteratorExt;
 
     #[test]
     fn test_partitioned() {

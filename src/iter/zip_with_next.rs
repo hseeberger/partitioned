@@ -10,8 +10,7 @@ impl<I> ZipWithNext<I>
 where
     I: Iterator,
 {
-    #[allow(missing_docs)]
-    pub fn new(upstream: I) -> Self {
+    pub(crate) fn new(upstream: I) -> Self {
         Self {
             upstream,
             current: None,
@@ -51,24 +50,24 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::IteratorExt;
+    use super::*;
 
     #[test]
     fn test_zip_with_next() {
         let numbers = 0..0;
-        let numbers = numbers.zip_with_next().collect::<Vec<_>>();
+        let numbers = ZipWithNext::new(numbers).collect::<Vec<_>>();
         assert_eq!(numbers, vec![]);
 
         let numbers = 0..1;
-        let numbers = numbers.zip_with_next().collect::<Vec<_>>();
+        let numbers = ZipWithNext::new(numbers).collect::<Vec<_>>();
         assert_eq!(numbers, vec![(0, None)]);
 
         let numbers = 0..2;
-        let numbers = numbers.zip_with_next().collect::<Vec<_>>();
+        let numbers = ZipWithNext::new(numbers).collect::<Vec<_>>();
         assert_eq!(numbers, vec![(0, Some(1)), (1, None)]);
 
         let numbers = 0..4;
-        let numbers = numbers.zip_with_next().collect::<Vec<_>>();
+        let numbers = ZipWithNext::new(numbers).collect::<Vec<_>>();
         assert_eq!(
             numbers,
             vec![(0, Some(1)), (1, Some(2)), (2, Some(3)), (3, None)]

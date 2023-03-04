@@ -11,6 +11,10 @@ repository    = "https://github.com/hseeberger/partitioned"
 documentation = "https://github.com/hseeberger/partitioned"
 
 [dependencies]
+futures     = { version = "0.3" }
+parking_lot = { version = "0.12" }
+pin-project = { version = "1.0" }
 
 [dev-dependencies]
 anyhow = { version = "1.0" }
+tokio  = { version = "1.26", features = [ "macros", "rt-multi-thread" ] }

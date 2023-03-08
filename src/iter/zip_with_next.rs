@@ -3,17 +3,18 @@ where
     I: Iterator,
 {
     upstream: I,
-    current: Option<I::Item>,
+    prev: Option<I::Item>,
 }
 
 impl<I> ZipWithNext<I>
 where
     I: Iterator,
 {
-    pub(crate) fn new(upstream: I) -> Self {
+    #[allow(missing_docs)]
+    pub fn new(upstream: I) -> Self {
         Self {
             upstream,
-            current: None,
+            prev: None,
         }
     }
 }
@@ -27,23 +28,23 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.upstream.next() {
-            Some(item) => match self.current.take() {
-                Some(current) => {
-                    self.current = Some(item.clone());
-                    Some((current, Some(item)))
+            Some(current) => match self.prev.take() {
+                Some(prev) => {
+                    self.prev = Some(current.clone());
+                    Some((prev, Some(current)))
                 }
 
                 None => match self.upstream.next() {
                     Some(next) => {
-                        self.current = Some(next.clone());
-                        Some((item, Some(next)))
+                        self.prev = Some(next.clone());
+                        Some((current, Some(next)))
                     }
 
-                    None => Some((item, None)),
+                    None => Some((current, None)),
                 },
             },
 
-            None => self.current.take().map(|last| (last, None)),
+            None => self.prev.take().map(|last| (last, None)),
         }
     }
 }
